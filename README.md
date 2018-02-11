@@ -8,5 +8,5 @@ Write a GoLang multithreaded applications to compute the sum of integers stored 
 
 #### Prerequisites:
 * GOLang
-* GO library [github.com/alexcesaro/log/stdlog](https://github.com/alexcesaro/log)
+* GO library [stdlog](https://github.com/alexcesaro/log)
 
