@@ -7,6 +7,13 @@ Implemented the academic project, under [Prof. K. Kalpakis](https://www.csee.umb
 Write a GoLang multithreaded applications to compute the sum of integers stored in a file.
 
 #### Prerequisites:
-* GOLang
+* GoLang
 * GO library [stdlog](https://github.com/alexcesaro/log)
+* Linux Environment
+
+#### Usage:
+* Install `stdlog` library using `make configure`
+* `make build`
+* `./main -log=<loglevel> <#workers> <filename>`
+* Specifying log level is optional, default log level is 'info'
 

@@ -1,3 +1,6 @@
+/**
+* Author : Siddhant Goenka
+*/
 package main
 
 import (
@@ -13,12 +16,12 @@ var logger = log.GetFromFlags()
 func main() {
 
 	/* Parsing command line arguments */
-	fname := os.Args[1]
-	wc := os.Args[2]
+	wc := os.Args[1]
+	fname := os.Args[2]
 
-	if strings.Contains(fname, "-log=") {
-		fname = os.Args[2]
-		wc = os.Args[3]
+	if strings.Contains(wc, "-log=") {
+		wc = os.Args[2]
+		fname = os.Args[3]
 	}
 
 	tcount, _ := strconv.Atoi(wc)

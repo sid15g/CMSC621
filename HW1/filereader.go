@@ -1,3 +1,6 @@
+/**
+* Author : Siddhant Goenka
+*/
 package main
 
 import "os"
