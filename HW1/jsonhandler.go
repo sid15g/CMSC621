@@ -24,9 +24,9 @@ type dataInfo struct	{
 
 /* JSON structure to send back partial sum to manager */
 type result struct {
-	Prefix uint64 `json:"prefix"`
+	Prefix string `json:"prefix"`
 	Value uint64 `json:"value"`
-	Suffix uint64 `json:"suffix"`
+	Suffix string `json:"suffix"`
 }
 
 

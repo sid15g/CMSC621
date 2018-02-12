@@ -24,9 +24,19 @@ func (m *manager) start()	{
 	finfo.info()
 
 	m.scheduleWorkers()
-
 	/* Wait for workers to finish calculating partial sums */
 	lock.Wait()
+
+	/* Get response from all workers, since wait is over */
+	response := make([]string, m.wcount);
+
+	for _, w := range workers	{
+		res := <- w.ch
+		response[w.id] = res
+		logger.Infof("Received JSON from W%d : %s", w.id, res)
+		close(w.ch)
+	}//end of loop
+
 	m.finalizeSum()
 
 }//end of method
@@ -34,7 +44,7 @@ func (m *manager) start()	{
 
 func (m *manager) scheduleWorkers()	{
 
-	offset :=  round( float64(finfo.filesize)/float64(m.wcount-1) )
+	offset :=  round( float64(finfo.filesize)/float64(m.wcount) )
 	logger.Debugf("Offset for each worker: %dbytes", offset)
 
 	var i uint64 = 0
@@ -42,20 +52,20 @@ func (m *manager) scheduleWorkers()	{
 	workers = make([]*worker, m.wcount);
 
 
-	for i=0; i <= finfo.filesize;		{
+	for i=0; i < finfo.filesize;		{
 
 		end := min(i+offset-1, finfo.filesize-1)
 		di := dataInfo{finfo.filename, i, end}
 		str := di.marshal()
 
-		ch := make(chan string, 100)						// buffer length = 100 bytes
+		ch := make(chan string, len(str))						// buffer length = 100 bytes
 		w := &worker{ch:ch, id: count, lock:&lock}
 		workers[count] = w
 		ch <- str
-		close(ch)
+		// DO NOT close(ch), need to get back the response
 
 		lock.Add(1)
-		go w.start()
+		w.start()
 
 		i += offset
 		count++

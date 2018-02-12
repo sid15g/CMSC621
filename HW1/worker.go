@@ -17,14 +17,22 @@ type worker struct	{
 	lock *sync.WaitGroup
 }
 
-const space = string(' ')
+const (
+	space = string(' ')
+	newln = string('\n')
+)
 
 /* Starts worker thread - use 'go' keyword to start it */
 func (w *worker) start()	{
+
 	w.getInfo()
-	w.calculateSum()
+	res := w.calculateSum()
+
 	w.lock.Done()
-}
+	w.ch <- res
+	logger.Debugf(" Worker[%d] Partial sum sent : %s", w.id, res)
+
+}//end of method
 
 
 /* Get JSON from the channel, parse it and create file pointer for worker to read the file */
@@ -38,34 +46,40 @@ func (w *worker) getInfo()	{
 
 
 /* Calculates partial sum and returns prefix, sum, suffix */
-func (w *worker) calculateSum() uint64	{
+func (w *worker) calculateSum() string	{
 
-	data := w.fptr.read()
-	logger.Debugf(" Worker[%d]: %d bytes data read -> %v", w.id, len(data), data)
+	byts := w.fptr.read()
+	data := strings.Replace(string(byts), newln, space, -1)
+	logger.Infof(" Worker[%d]: data -> [%s]", w.id, string(data))
 
 	var sum uint64 = 0
 	vals := string(data)
 	str := strings.Split(vals, space)
 
-	//TODO ignore first and last element, for prefix and suffix
+	last := len(str)-1
+	r := &result{Prefix:str[0], Suffix: str[last]}
 
-	for _, e := range str {
+	for i:=1; i<last; i++ {
 
-		num, err := strconv.Atoi(e)
+		e := str[i]
 
-		if len(e)>0 && check(err)	{
+		if len(e) > 0 {
+			num, _ := strconv.Atoi(e)
 			sum += uint64(num)
-			//TODO calculate prefix, suffix and partial sum
-		}else if len(e) > 0 {
-			//TODO print some error
 		}else {
 			// found space, do not do anything
 		}
 
 	}//end of loop
 
-	logger.Infof(" Worker[%d]: Partial Sum %d",w.id, sum )
-	return sum
-	//TODO return prefix, sum, suffix (in order)
+	logger.Debugf(" Worker[%d]: Partial Sum %d",w.id, sum )
+	r.finalize(sum)
+	return r.marshal();
 
+}//end of method
+
+
+func (r *result) finalize(sum uint64)	{
+	r.Value = sum
+	//TODO
 }//end of method

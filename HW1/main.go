@@ -37,7 +37,7 @@ func main() {
 
 /* Rounds up the value of a float64 */
 func round(val float64) uint64	{
-	return uint64( math.Floor(val) )
+	return uint64( math.Floor(val) + 1 )
 }
 
 
