@@ -3,7 +3,12 @@
 */
 package main
 
-import "sync"
+import (
+	"sync"
+	"strconv"
+	"fmt"
+	"math"
+)
 
 type manager struct	{
 	filename string
@@ -26,18 +31,10 @@ func (m *manager) start()	{
 	m.scheduleWorkers()
 	/* Wait for workers to finish calculating partial sums */
 	lock.Wait()
+	total := m.finalizeSum()
 
-	/* Get response from all workers, since wait is over */
-	response := make([]string, m.wcount);
-
-	for _, w := range workers	{
-		res := <- w.ch
-		response[w.id] = res
-		logger.Infof("Received JSON from W%d : %s", w.id, res)
-		close(w.ch)
-	}//end of loop
-
-	m.finalizeSum()
+	fmt.Println()
+	logger.Info("Total sum is:", total)
 
 }//end of method
 
@@ -65,7 +62,7 @@ func (m *manager) scheduleWorkers()	{
 		// DO NOT close(ch), need to get back the response
 
 		lock.Add(1)
-		w.start()
+		go w.start()
 
 		i += offset
 		count++
@@ -75,10 +72,76 @@ func (m *manager) scheduleWorkers()	{
 }//end of method
 
 
+/* Get response from all workers, since wait is over, and return the final sum */
 func (m *manager) finalizeSum() uint64	{
+
 	logger.Info("Finalizing sum...")
-	//TODO
-	return 0
+	response := make([]*result, m.wcount);
+
+	for _, w := range workers	{
+
+		res := <- w.ch
+
+		if len(res) > 0	{
+			r := &result{}
+			logger.Infof("Received JSON from W%d : %s", w.id, res)
+			r.unmarshal(res)
+			response[w.id] = r
+			close(w.ch)
+		}else {
+			logger.Errorf("Unknown Response from W%d : %s", w.id, res)
+		}
+
+	}//end of worker loop
+
+
+	var wid int16 = 1
+	var length int16 = int16(len(response))
+
+	var total_sum uint64 = response[0].Value
+	var prev_suffix string = response[0].Suffix
+
+	for ; wid<length; wid++ {
+
+		r := response[wid]
+
+		if wid > 0	{
+			/* Check previous response also for suffix and prefix */
+
+			if len(prev_suffix)>0 && len(r.Prefix)>0 {
+				sf,_ := strconv.Atoi(prev_suffix)
+				pr,_ := strconv.Atoi(r.Prefix)
+				temp := int( math.Pow10( len(r.Prefix) ) )
+				num := (sf * temp ) + pr
+				logger.Info("Suffix-Prefix Merged:", num)
+				total_sum += uint64(num)
+			}else if len(prev_suffix) > 0	{
+				sf,_ := strconv.Atoi(prev_suffix)
+				logger.Info("Suffix Added to sum:", sf)
+				total_sum += uint64(sf)
+			}else if len(r.Prefix) > 0 {
+				pr,_ := strconv.Atoi(r.Prefix)
+				logger.Info("Prefix Added to sum:", pr)
+				total_sum += uint64(pr)
+			}
+
+			total_sum += r.Value
+			prev_suffix = r.Suffix
+
+		}else {
+			logger.Errorf("Unknown Worker ID W%d ", wid)
+		}
+
+	}//end of result loop
+
+	if len(prev_suffix) > 0	{
+		sf,_ := strconv.Atoi(prev_suffix)
+		logger.Info("Suffix Added to sum:", sf)
+		total_sum += uint64(sf)
+	}
+
+	return total_sum
+
 }//end of method
 
 
