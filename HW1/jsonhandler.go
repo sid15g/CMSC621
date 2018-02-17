@@ -27,6 +27,7 @@ type result struct {
 	Prefix string `json:"prefix"`
 	Value uint64 `json:"value"`
 	Suffix string `json:"suffix"`
+	Chunk uint64 `json:"chunk"`
 }
 
 

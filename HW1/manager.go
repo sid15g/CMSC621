@@ -5,9 +5,7 @@ package main
 
 import (
 	"sync"
-	"strconv"
 	"fmt"
-	"math"
 )
 
 type manager struct	{
@@ -46,12 +44,20 @@ func (m *manager) scheduleWorkers()	{
 
 	var i uint64 = 0
 	var count uint8 = 0
+	var settle uint64 = 0
 	workers = make([]*worker, m.wcount);
-
+	extra := finfo.filesize - offset*m.wcount
 
 	for i=0; i < finfo.filesize;		{
 
-		end := min(i+offset-1, finfo.filesize-1)
+		if( extra > 0 )	{
+			settle = 1
+			extra--
+		}else {
+			settle = 0
+		}
+
+		end := min(i+offset-1+settle, finfo.filesize-1)
 		di := dataInfo{finfo.filename, i, end}
 		str := di.marshal()
 
@@ -64,7 +70,7 @@ func (m *manager) scheduleWorkers()	{
 		lock.Add(1)
 		go w.start()
 
-		i += offset
+		i += (offset+settle)
 		count++
 
 	}//end of loop
@@ -101,6 +107,10 @@ func (m *manager) finalizeSum() uint64	{
 	var total_sum uint64 = response[0].Value
 	var prev_suffix string = response[0].Suffix
 
+	if response[0].Chunk != 0	{
+		prev_suffix = string(response[0].Chunk)
+	}
+
 	for ; wid<length; wid++ {
 
 		r := response[wid]
@@ -109,20 +119,26 @@ func (m *manager) finalizeSum() uint64	{
 			/* Check previous response also for suffix and prefix */
 
 			if len(prev_suffix)>0 && len(r.Prefix)>0 {
-				sf,_ := strconv.Atoi(prev_suffix)
-				pr,_ := strconv.Atoi(r.Prefix)
-				temp := int( math.Pow10( len(r.Prefix) ) )
+				sf := ParseInt(prev_suffix)
+				pr := ParseInt(r.Prefix)
+				temp := powOfTen(r.Prefix)
 				num := (sf * temp ) + pr
 				logger.Info("Suffix-Prefix Merged:", num)
-				total_sum += uint64(num)
+				total_sum += num
+			}else if r.Chunk > 0 {
+				sf := ParseInt(prev_suffix)
+				temp := powOfTen( fmt.Sprintf("%d", r.Chunk) )
+				num := (sf * temp) + r.Chunk
+				logger.Infof("Chunk combined : %d", num)
+				r.Suffix = fmt.Sprintf("%d", num)
 			}else if len(prev_suffix) > 0	{
-				sf,_ := strconv.Atoi(prev_suffix)
+				sf := ParseInt(prev_suffix)
 				logger.Info("Suffix Added to sum:", sf)
-				total_sum += uint64(sf)
+				total_sum += sf
 			}else if len(r.Prefix) > 0 {
-				pr,_ := strconv.Atoi(r.Prefix)
+				pr := ParseInt(r.Prefix)
 				logger.Info("Prefix Added to sum:", pr)
-				total_sum += uint64(pr)
+				total_sum += pr
 			}
 
 			total_sum += r.Value
@@ -135,9 +151,9 @@ func (m *manager) finalizeSum() uint64	{
 	}//end of result loop
 
 	if len(prev_suffix) > 0	{
-		sf,_ := strconv.Atoi(prev_suffix)
+		sf := ParseInt(prev_suffix)
 		logger.Info("Suffix Added to sum:", sf)
-		total_sum += uint64(sf)
+		total_sum += sf
 	}
 
 	return total_sum
@@ -146,7 +162,7 @@ func (m *manager) finalizeSum() uint64	{
 
 
 func min(a uint64, b uint64 ) uint64	{
-	if a <= b {
+	if a < b {
 		return a
 	}else	{
 		return b

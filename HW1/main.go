@@ -37,9 +37,32 @@ func main() {
 
 /* Rounds up the value of a float64 */
 func round(val float64) uint64	{
-	return uint64( math.Floor(val) + 1 )
+	return uint64( math.Floor(val) )
 }
 
+
+func ParseInt(str string) uint64	{
+	val,err := strconv.ParseUint(str, 10, 64)
+
+	if err!=nil	{
+		logger.Error("Unable to parse", str, ":", err)
+		return val
+	}else {
+		return val
+	}
+
+}
+
+/* math.pow10() fails for uint64 */
+func powOfTen(exp string) uint64	{
+
+	var res uint64 = 1
+
+	for i:=1; i<=len(exp); i++ {
+		res *= 10
+	}
+	return res
+}
 
 /* Checks for error and prints if found */
 func check(err error) bool {

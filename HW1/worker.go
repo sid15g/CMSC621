@@ -54,27 +54,35 @@ func (w *worker) calculateSum() string	{
 
 	var sum uint64 = 0
 	vals := string(data)
-	str := strings.Split(vals, space)
 
-	last := len(str)-1
-	r := &result{Prefix:str[0], Suffix: str[last]}
+	hasSpace := strings.Contains(vals, space)
 
-	for i:=1; i<last; i++ {
+	if hasSpace == false {
+		num, _ := strconv.Atoi(vals)
+		r := &result{Chunk: uint64(num)}
+		return r.marshal()
+	}else {
+		str := strings.Split(vals, space)
+		last := len(str)-1
+		r := &result{Prefix:str[0], Suffix: str[last]}
 
-		e := str[i]
+		for i:=1; i<last; i++ {
 
-		if len(e) > 0 {
-			num, _ := strconv.Atoi(e)
-			sum += uint64(num)
-		}else {
-			// found space, do not do anything
-		}
+			e := str[i]
 
-	}//end of loop
+			if len(e) > 0 {
+				num, _ := strconv.Atoi(e)
+				sum += uint64(num)
+			}else {
+				// found space, do not do anything
+			}
 
-	logger.Debugf(" Worker[%d]: Partial Sum %d",w.id, sum )
-	r.finalize(sum)
-	return r.marshal();
+		}//end of loop
+
+		logger.Debugf(" Worker[%d]: Partial Sum %d",w.id, sum )
+		r.finalize(sum)
+		return r.marshal()
+	}//end of space check
 
 }//end of method
 
