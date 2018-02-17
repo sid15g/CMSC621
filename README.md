@@ -1,6 +1,6 @@
-# [CMSC-621 Distributed Operating Systems](https://www.csee.umbc.edu/~kalpakis/Courses/621-sp18/cmsc621.php)
+# [CMSC-621 Advanced Operating Systems](https://www.csee.umbc.edu/~kalpakis/Courses/621-sp18/cmsc621.php)
 
-Implemented the academic project, under [Prof. K. Kalpakis](https://www.csee.umbc.edu/~kalpakis/) in `CMSC-621`
+Implemented the academic project(s), under [Prof. K. Kalpakis](https://www.csee.umbc.edu/~kalpakis/) in `CMSC-621`
 
 
 ### [HW1](https://www.csee.umbc.edu/~kalpakis/Courses/621-sp18/homeworks/hw1c.php):
