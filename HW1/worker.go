@@ -6,7 +6,6 @@ package main
 import (
 	"sync"
 	"strings"
-	"strconv"
 )
 
 /* Worker structure to store necessary details */
@@ -58,8 +57,8 @@ func (w *worker) calculateSum() string	{
 	hasSpace := strings.Contains(vals, space)
 
 	if hasSpace == false {
-		num, _ := strconv.Atoi(vals)
-		r := &result{Chunk: uint64(num)}
+		num := ParseInt(vals)
+		r := &result{Chunk: num}
 		return r.marshal()
 	}else {
 		str := strings.Split(vals, space)
@@ -71,8 +70,8 @@ func (w *worker) calculateSum() string	{
 			e := str[i]
 
 			if len(e) > 0 {
-				num, _ := strconv.Atoi(e)
-				sum += uint64(num)
+				num := ParseInt(e)
+				sum += num
 			}else {
 				// found space, do not do anything
 			}
