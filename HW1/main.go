@@ -42,13 +42,18 @@ func round(val float64) uint64	{
 
 
 func ParseInt(str string) uint64	{
-	val,err := strconv.ParseUint(str, 10, 64)
 
-	if err!=nil	{
-		logger.Error("Unable to parse", str, ":", err)
-		return val
+	if len(str) == 0 {
+		return uint64(0)
 	}else {
-		return val
+		val,err := strconv.ParseUint(str, 10, 64)
+
+		if err!=nil	{
+			logger.Error("Unable to parse", str, ":", err)
+			return val
+		}else {
+			return val
+		}
 	}
 
 }

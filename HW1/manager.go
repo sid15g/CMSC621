@@ -61,7 +61,7 @@ func (m *manager) scheduleWorkers()	{
 		di := dataInfo{finfo.filename, i, end}
 		str := di.marshal()
 
-		ch := make(chan string, len(str))						// buffer length = 100 bytes
+		ch := make(chan string, len(str))
 		w := &worker{ch:ch, id: count, lock:&lock}
 		workers[count] = w
 		ch <- str
@@ -108,7 +108,13 @@ func (m *manager) finalizeSum() uint64	{
 	var prev_suffix string = response[0].Suffix
 
 	if response[0].Chunk != 0	{
-		prev_suffix = string(response[0].Chunk)
+		prev_suffix = fmt.Sprintf("%d", response[0].Chunk)
+	}
+
+	if len(response[0].Prefix) > 0	{
+		ip := ParseInt(response[0].Prefix)
+		logger.Info("Initial-Prefix Added:", ip)
+		total_sum += ip
 	}
 
 	for ; wid<length; wid++ {
@@ -119,16 +125,20 @@ func (m *manager) finalizeSum() uint64	{
 			/* Check previous response also for suffix and prefix */
 
 			if len(prev_suffix)>0 && len(r.Prefix)>0 {
-				sf := ParseInt(prev_suffix)
-				pr := ParseInt(r.Prefix)
-				temp := powOfTen(r.Prefix)
-				num := (sf * temp ) + pr
+				//sf := ParseInt(prev_suffix)
+				//pr := ParseInt(r.Prefix)
+				//temp := powOfTen(r.Prefix)
+				//num := (sf * temp ) + pr
+				temp := fmt.Sprintf("%s%s", prev_suffix, r.Prefix)
+				num := ParseInt(temp)
 				logger.Info("Suffix-Prefix Merged:", num)
 				total_sum += num
 			}else if r.Chunk > 0 {
-				sf := ParseInt(prev_suffix)
-				temp := powOfTen( fmt.Sprintf("%d", r.Chunk) )
-				num := (sf * temp) + r.Chunk
+				//sf := ParseInt(prev_suffix)
+				//temp := powOfTen( fmt.Sprintf("%d", r.Chunk) )
+				//num := (sf * temp) + r.Chunk
+				temp := fmt.Sprintf("%s%d", prev_suffix, r.Chunk)
+				num := ParseInt(temp)
 				logger.Infof("Chunk combined : %d", num)
 				r.Suffix = fmt.Sprintf("%d", num)
 			}else if len(prev_suffix) > 0	{
