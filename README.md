@@ -3,7 +3,7 @@
 Implemented the academic project(s), under [Prof. K. Kalpakis](https://www.csee.umbc.edu/~kalpakis/) in `CMSC-621`
 
 
-### [HW1](https://www.csee.umbc.edu/~kalpakis/Courses/621-sp18/homeworks/hw1c.php):
+### [Sum using Go routines](https://www.csee.umbc.edu/~kalpakis/Courses/621-sp18/homeworks/hw1c.php):
 Write a GoLang multithreaded applications to compute the sum of integers stored in a file.
 
 #### Prerequisites:
